@@ -1,0 +1,49 @@
+﻿services:
+  books-service:
+    image: books-service:swarm
+    build: ./books-service
+    networks:
+      - microservices-net
+    ports:
+      - "5001:5001"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  orders-service:
+    image: orders-service:swarm
+    build: ./orders-service
+    networks:
+      - microservices-net
+    ports:
+      - "5002:5002"
+    environment:
+      - BOOKS_SERVICE_URL=http://books-service:5001
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    networks:
+      - microservices-net
+    configs:
+      - source: nginx-config
+        target: /etc/nginx/nginx.conf
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+configs:
+  nginx-config:
+    external: true
+
+networks:
+  microservices-net:
+    driver: overlay
