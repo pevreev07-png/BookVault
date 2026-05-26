@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  books-service:
+    build: ./books-service
+    container_name: books-service
+    ports:
+      - "5001:5001"
+    networks:
+      - microservices-net
+    restart: unless-stopped
+
+  orders-service:
+    build: ./orders-service
+    container_name: orders-service
+    ports:
+      - "5002:5002"
+    environment:
+      - BOOKS_SERVICE_URL=http://books-service:5001
+    networks:
+      - microservices-net
+    restart: unless-stopped
+    depends_on:
+      - books-service
+
+networks:
+  microservices-net:
+    driver: bridge
